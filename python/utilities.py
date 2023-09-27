@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import csv
 from scipy.stats import pearsonr, linregress
-from scipy.signal import butter, lfilter
 from scipy.signal import butter, filtfilt
 
 

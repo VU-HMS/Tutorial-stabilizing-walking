@@ -6,11 +6,6 @@ from utilities import *
 # path information
 datapath = "C:/Users/mat950/Documents/Software/DataAnalysis/Tutorial-stabilizing-walking/ExampleData"
 
-# walking conditions
-WalkCond = ["SteadyState_normal", "SteadyState_slow"]
-
-
-
 # check if datafile exists
 filepath_data = datapath + "/S3/SteadyState_normal_data.csv"
 filepath_event = datapath + "/S3/SteadyState_normal_event.csv"
@@ -26,19 +21,23 @@ if os.path.exists(filepath_data) and os.path.exists(filepath_event):
     GRFR = np.vstack((Dat.GRFRx, Dat.GRFRy)).T
     GRFL = np.vstack((Dat.GRFLx, Dat.GRFLy)).T
 
+    # filter specs
+    filteroder = 2
+    filtercutoff = 10
+
     # filter COM data
     fs = 1 / np.nanmean(np.diff(time))
-    COM_filt = ButterFilter_Low_NaNs(fs, COM, 2, 6)
+    COM_filt = ButterFilter_Low_NaNs(fs, COM, filteroder, filtercutoff)
     COMd_filt = central_difference(time, COM_filt)
 
     # filter GRF dat
-    GRFR_filt = ButterFilter_Low_NaNs(fs, GRFR, 2, 6)
-    GRFL_filt = ButterFilter_Low_NaNs(fs, GRFL, 2, 6)
+    GRFR_filt = ButterFilter_Low_NaNs(fs, GRFR, filteroder, filtercutoff)
+    GRFL_filt = ButterFilter_Low_NaNs(fs, GRFL, filteroder, filtercutoff)
     GRF = GRFR_filt + GRFL_filt
 
     # filter foot positions
-    FootL_filt = ButterFilter_Low_NaNs(fs, FootL, 2, 6)
-    FootR_filt = ButterFilter_Low_NaNs(fs, FootR, 2, 6)
+    FootL_filt = ButterFilter_Low_NaNs(fs, FootL, filteroder, filtercutoff)
+    FootR_filt = ButterFilter_Low_NaNs(fs, FootR, filteroder, filtercutoff)
 
     # compute extrapolated center of mass
     L = np.nanmean(Dat.COMz)
