@@ -128,7 +128,8 @@ def central_difference(x, y):
     return dy_dx
 
 
-# class to create data table, fit regression model and visualise datafit
+# class used to relate COM state and ankle moment
+# (we used an object oriented approach without a particular reason...)
 class RegressionModel:
     def __init__(self, nrows):
         # init the data matrices
@@ -327,8 +328,8 @@ def NormPhase(time, t0, tend, data, *args):
     return dataV, DatMean, DatSTD, DatMedian
 
 
-# currently converted using chatGPT, not verified
-# the whole thing with the nansignal is a bit weird, but seems to work
+# the whole thing with the nansignal is a bit weird, but seems to work (same as in matlab code)
+# normaliwes the signal between to and hs
 def normalizetimebase_step(t, signal, to, hs):
     # check if toe-off is not after heelstrike (we want swing phase)
     if to[0] > hs[0]:
@@ -370,8 +371,7 @@ def normalizetimebase_step(t, signal, to, hs):
     return Cycle, TimeGain
 
 
-# currently converted using chatGPT, not verified
-# seems to work now, but programming can be improved (also in the original matlab code)
+# orders events (sames as  in matla code)
 def order_events(events, loc_mode="walk"):
     lhs = events["lhs"]
     rhs = events["rhs"]
@@ -442,7 +442,7 @@ def order_events(events, loc_mode="walk"):
 
     return events, flag
 
-
+# computes R2 value
 def nanR2(A, B):
     """
     Calculate the coefficient of determination (R^2), root-mean-square (rms), and mean-absolute (ma) difference
@@ -476,7 +476,7 @@ def nanR2(A, B):
 
     return R2, rms, ma
 
-
+# gets absulute variance explained
 def abs_expvar_fp(fp_act, fp_pred):
     # Calculate the absolute explained variance
     abs_expvar1 = np.sum((fp_pred - np.mean(fp_act)) ** 2)
@@ -903,7 +903,7 @@ def feedback_com_xcom(
         lag_com,
     )
 
-
+# low pass filter that first interpolates nans, filters data and add nans to filtered signal
 def ButterFilter_Low_NaNs(fs, dat, filter_order=2, cutoff_frequency=6):
     # interpolate data to remove nans (needed before filtering)
     if dat.ndim == 1:
@@ -945,6 +945,7 @@ def ButterFilter_Low_NaNs(fs, dat, filter_order=2, cutoff_frequency=6):
         dat_filt[nan_indices,:] = np.nan
     return dat_filt
 
+# simple function to plot bars (averages) and individual datapoints
 def PlotBar(x, y, *args):
     # Default properties
     Cs = [0.6, 0.6, 0.6]  # Default color
