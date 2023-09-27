@@ -15,7 +15,7 @@ BoolCreateTable = True
 # id to each datapoint. This makes it easy to peform the regression on a specific subset
 # of the data (e.g. for a specific phase in the gait cycle, of across subjects or for
 # individual subjects).
-myModel = RegressionModel(100000)
+myModel = reg_anklemoment_com(100000)
 
 # time delay information
 tau = 0.1  # feedback delay in model
@@ -111,7 +111,7 @@ if BoolCreateTable:
     myModel.writetocsv("RegressionModel_DataMoira.csv")
 else:
     # load the data from a previously storded csv file
-    myModel = RegressionModel(50000)
+    myModel = reg_anklemoment_com(50000)
     myModel.importfromcsv("RegressionModel_DataMoira.csv")
 
 

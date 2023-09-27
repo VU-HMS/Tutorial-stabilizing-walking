@@ -129,7 +129,7 @@ def central_difference(x, y):
 
 # class used to relate COM state and ankle moment
 # (we used an object oriented approach without a particular reason...)
-class RegressionModel:
+class reg_anklemoment_com:
     def __init__(self, nrows):
         # init the data matrices
         self.x1 = np.empty(nrows)
