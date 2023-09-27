@@ -1,6 +1,21 @@
 function [corr_phase_xcom,gain_phase_xcom,lag_xcom,corr_phase_com,gain_phase_com,...
     gain_phase_vcom,lag_com] = feedback_com_xcom(force,com,vcom,xcom,lfoot,rfoot,...
     maxlag,l_HeelStrike,r_HeelStrike,time)
+% feedback_com_xcom computed the relation between the ground reaction
+% forces and the extrapolated center of mass information as a function of
+% the gait cycle for a range of delays  between both signals
+% Inputs:
+%   (1) force: nx3 vector with ground reaction forces
+%   (2) com: nx3 vector with center of mass position
+%   (3) vcom: nx3 vector with center of mass velocity
+%   (4) xcom: nx3 vector with extrapolated center of mass position
+%   (5) lfoot: nx3 vector with position of the left foot
+%   (6) lfoot: nx3 vector with position of the right foot
+%   (7) max: maximal lag in the system (expressed as % gait cycle, so not in s)
+%   (8) l_Heelstrike: vector with timing of the left heelstrikes
+%   (9) r_Heelstrike: vector with timing of the right heelstrikes
+%   (10) time: time vector
+
 
 n_strides = length(l_HeelStrike) - 1;
 stride_f = nanmean(diff(l_HeelStrike));
