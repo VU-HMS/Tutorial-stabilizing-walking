@@ -12,7 +12,7 @@ You can analyse the relation between center of mass kinematics and foot placemen
 
 ## Control of ankle moment
 
-You can analyse the relation between center of mass kinematics and ankle using the class reg_anklemoment_com (utilities.py/reg_anklemoment_com) . The script AnkleMoment_Unpert.py contains an examples on how to run this analysis in python
+You can analyse the relation between center of mass kinematics and ankle using the class reg_anklemoment_com (utilities.py/reg_anklemoment_com) . The script AnkleMoment_Unpert.py contains an example on how to run this analysis in python
 
 
 
