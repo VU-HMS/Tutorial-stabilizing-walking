@@ -1,6 +1,6 @@
 # Tutorial-stabilizing-walking
 
-This repository contains the matlab and python implementation of the methods presented in "Assessment of stabilizing feedback control of walking, a tutorial" [add doi]. In this tutorial paper we analyse the relation between COM state and (1) ground reaction force, (2) foot placement and (3) ankle moments during walking.
+This repository contains the matlab and python implementation of the methods presented in "Assessment of stabilizing feedback control of walking, a tutorial" (https://doi.org/10.1101/2023.09.28.559516). In this tutorial paper we analyse the relation between COM state and (1) ground reaction force, (2) foot placement and (3) ankle moments during walking.
 
 ## Control of horizontal ground reaction forces
 
