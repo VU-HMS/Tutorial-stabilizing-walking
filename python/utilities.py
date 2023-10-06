@@ -370,7 +370,7 @@ def normalizetimebase_step(t, signal, to, hs):
     return Cycle, TimeGain
 
 
-# orders events (sames as  in matla code)
+# orders events (same as in the matlab code)
 def order_events(events, loc_mode="walk"):
     lhs = events["lhs"]
     rhs = events["rhs"]
@@ -392,22 +392,24 @@ def order_events(events, loc_mode="walk"):
         ind_end = np.max(np.where(data[:, 0] == 4))
         data = data[ind_begin : ind_end + 1]
 
-        events["lhs"] = data[data[:, 0] == 1, 1]
-        events["rto"] = data[data[:, 0] == 2, 1]
-        events["rhs"] = data[data[:, 0] == 3, 1]
-        events["lto"] = data[data[:, 0] == 4, 1]
+        lhs_sort = data[data[:, 0] == 1, 1]
+        rto_sort= data[data[:, 0] == 2, 1]
+        rhs_sort = data[data[:, 0] == 3, 1]
+        lto_sort = data[data[:, 0] == 4, 1]
+        EventDat = np.vstack([lhs_sort, rto_sort, rhs_sort, lto_sort]).T
+        events_out = pd.DataFrame(EventDat,columns=["lhs","rto","rhs","lto"])
 
         flag = 0
         if not (
-            len(events["lto"]) == len(events["rto"])
-            and len(events["rhs"]) == len(events["rto"])
-            and len(events["lhs"]) == len(events["rto"])
+            len(events_out["lto"]) == len(events_out["rto"])
+            and len(events_out["rhs"]) == len(events_out["rto"])
+            and len(events_out["lhs"]) == len(events_out["rto"])
         ):
             flag = 1
         elif (
-            np.any((events["rto"] - events["lhs"]) < 0)
-            or np.any((events["rhs"] - events["rto"]) < 0)
-            or np.any((events["lto"] - events["rhs"]) < 0)
+            np.any((events_out["rto"] - events_out["lhs"]) < 0)
+            or np.any((events_out["rhs"] - events_out["rto"]) < 0)
+            or np.any((events_out["lto"] - events_out["rhs"]) < 0)
         ):
             flag = 2
 
@@ -426,21 +428,22 @@ def order_events(events, loc_mode="walk"):
         ind_end = np.max(np.where(data[:, 0] == 4))
         data = data[ind_begin : ind_end + 1]
 
-        events["lhs"] = data[data[:, 0] == 1, 1]
-        events["lto"] = data[data[:, 0] == 2, 1]
-        events["rhs"] = data[data[:, 0] == 3, 1]
-        events["rto"] = data[data[:, 0] == 4, 1]
+        lhs_sort = data[data[:, 0] == 1, 1]
+        rto_sort= data[data[:, 0] == 2, 1]
+        rhs_sort = data[data[:, 0] == 3, 1]
+        lto_sort = data[data[:, 0] == 4, 1]
+        EventDat = np.vstack([lhs_sort, rto_sort, rhs_sort, lto_sort]).T
+        events_out = pd.DataFrame(EventDat,columns=["lhs","rto","rhs","lto"])
 
         flag = 0
         if not (
-            len(events["lto"]) == len(events["rto"])
-            and len(events["rhs"]) == len(events["rto"])
-            and len(events["lhs"]) == len(events["rto"])
+            len(events_out["lto"]) == len(events_out["rto"])
+            and len(events_out["rhs"]) == len(events_out["rto"])
+            and len(events_out["lhs"]) == len(events_out["rto"])
         ):
             flag = 1
 
-    return events, flag
-
+    return events_out, flag
 # computes R2 value
 def nanR2(A, B):
     """
