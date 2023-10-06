@@ -63,21 +63,25 @@ if BoolCreateTable:
         filteroder = 2
         fs = 1 / np.nanmean(np.diff(t))
         COMfilt = ButterFilter_Low_NaNs(fs, COM, filteroder, filtercutoff)
-        COMdfilt = central_difference(t, COMfilt)
         Tanklefilt = ButterFilter_Low_NaNs(
             fs, Tankle, filteroder, filtercutoff
         )
         FootLfilt = ButterFilter_Low_NaNs(
             fs, FootL, filteroder, filtercutoff
         )
+        # Numerical derivative for COM velocity
+        COMdfilt = central_difference(t, COMfilt)
+        FootdLfilt = central_difference(t, FootLfilt)
+        trSpeed = np.nanmean(FootdLfilt[Dat.GRFLz>100]) # average velocity foot marker when foot in on the ground
 
         # nondim all inputs
         g = 9.81 # gravity
         m = np.mean(Dat.GRFLz + Dat.GRFRz) / g # mass subject
         L = np.mean(Dat.COMz) # height COM
         Tankle = Tanklefilt / (m * L * g)
-        r_COM_Foot = (COMfilt - FootLfilt) / L
-        COMd = COMdfilt / np.sqrt(g * L)
+        r_COM_Foot = (COMfilt - FootLfilt) / L # COM w.r.t. foot
+        COMd = (COMdfilt-trSpeed) / np.sqrt(g * L)
+
         # loop over left heelstrikes
         n_lhs = len(Event.lhs)
         ctDelay = -1 # counter for phase in gait cycle
