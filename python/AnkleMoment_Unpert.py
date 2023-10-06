@@ -71,6 +71,8 @@ if BoolCreateTable:
         )
         # Numerical derivative for COM velocity
         COMdfilt = central_difference(t, COMfilt)
+
+        # get treadmill speed
         FootdLfilt = central_difference(t, FootLfilt)
         trSpeed = np.nanmean(FootdLfilt[Dat.GRFLz>100]) # average velocity foot marker when foot in on the ground
 

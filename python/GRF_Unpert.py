@@ -39,6 +39,11 @@ if os.path.exists(filepath_data) and os.path.exists(filepath_event):
     FootL_filt = ButterFilter_Low_NaNs(fs, FootL, filteroder, filtercutoff)
     FootR_filt = ButterFilter_Low_NaNs(fs, FootR, filteroder, filtercutoff)
 
+    # get treadmill speed
+    FootdLfilt = central_difference(time, FootL_filt)
+    trSpeed = np.nanmean(FootdLfilt[Dat.GRFLz > 100])  # average velocity foot marker when foot in on the ground
+    COMd_filt = COMd_filt - trSpeed
+
     # compute extrapolated center of mass
     L = np.nanmean(Dat.COMz)
     xCOM = COM_filt + COMd_filt / np.sqrt(9.81 / L)
