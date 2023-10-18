@@ -29,11 +29,15 @@ gain_phase_vcom = nan(50,2,2);
 lag_xcom = nan(2,2);
 lag_com = nan(2,2);
 
+
 for dim = 1:2 % dim = 1 for ML; dim = 2 for AP
     dimdata  = [force(:,dim),com(:,dim),vcom(:,dim),xcom(:,dim),lfoot(:,dim),rfoot(:,dim)];
     for ft = 1:2
         % calculate time_normalized forces, xcom, etc
-        ndata2 = nan(100,length(l_HeelStrike)-3,6);
+        nLeftHS = length(l_HeelStrike);
+        nRightHS = length(r_HeelStrike);
+        maxHs = max([nLeftHS nRightHS]);
+        ndata2 = nan(100,maxHs-1,6);
         for var = 1:6
             if ft == 1
                 %tmp = normalizetimebase(dimdata(:,var),l_HeelStrike);
@@ -41,11 +45,12 @@ for dim = 1:2 % dim = 1 for ML; dim = 2 for AP
             else
                 tmp = NormCycle(time,r_HeelStrike,dimdata(:,var));
             end
-            ndata2(:,:,var)  = tmp(:,1:end-2);
+            ncycl = length(tmp(1,:));
+            ndata2(:,1:ncycl,var)  = tmp;
         end
         % reference com and xcom to foot at start of cycle
-        ndata2(:,:,2)        =  ndata2(:,:,2) - mean(ndata2(10:40,:,4+ft));
-        ndata2(:,:,4)        =  ndata2(:,:,4) - mean(ndata2(10:40,:,4+ft));
+        ndata2(:,:,2)        =  ndata2(:,:,2) - nanmean(ndata2(10:40,:,4+ft));
+        ndata2(:,:,4)        =  ndata2(:,:,4) - nanmean(ndata2(10:40,:,4+ft));
         % association between forces in stride with xcom at phase lead j
         corr_force_xcom = nan(50,maxlag);
         gain_force_xcom = nan(50,maxlag);
@@ -68,7 +73,7 @@ for dim = 1:2 % dim = 1 for ML; dim = 2 for AP
                 mv(iNan) = [];
 
                 corr_force_xcom(i-50,j) = corr(mf',mx');
-                p_temp = polyfit(mx,mf,1);
+                p_temp = polyfit(mx,mf,1); 
                 gain_force_xcom(i-50,j) = p_temp(1);
 
                 stats                    = regstats(mf',[mc',mv'],'linear',{'beta','rsquare'});
