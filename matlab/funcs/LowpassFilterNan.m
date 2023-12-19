@@ -10,7 +10,7 @@ iNoNaN = ~isnan(COM(:,1));
 IndexAll = 1:length(COM);
 IndexNoNaN = IndexAll(iNoNaN);
 COM_int = interp1(IndexNoNaN, COM(iNoNaN,:),IndexAll, 'spline');
-COM_int(iNan,:) = 0;
+
 % filter data without nans
 [a,b] = butter(order,cutoff./(0.5*fs),'low');
 COM_filt = filtfilt(a,b,COM_int);
