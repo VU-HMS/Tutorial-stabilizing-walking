@@ -39,4 +39,4 @@ end
 figure();
 plot(OUT.Combined_pct.data);
 ylabel(OUT.Combined_pct.ylabel);
-ylabel(OUT.Combined_pct.titel);
+ylabel(OUT.Combined_pct.ylabel);

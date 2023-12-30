@@ -13,7 +13,7 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     Dat = readtable(filepath_data);
     Event = readtable(filepath_event);
     fs = 1./nanmean(diff(Dat.time));
-    L=nanmean(Dat.COMz)
+      L=nanmean(Dat.C(:,3))
 
     % extract info
     COM = [Dat.COMx Dat.COMy];
@@ -21,13 +21,13 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     FootR = [Dat.FootRx Dat.FootRy];
     GRFR = [Dat.GRFRx Dat.GRFRy];
     GRFL = [Dat.GRFLx Dat.GRFLy];
-
+  
     % convert events to index frame (instead of time)
     events.lhs = round(Event.lhs*fs + 1); % index starts at 1 in matlab so + 1
     events.rhs = round(Event.rhs*fs+ 1); % index starts at 1 in matlab so + 1
     events.rto = round(Event.rto*fs+ 1); % index starts at 1 in matlab so + 1
     events.lto = round(Event.lto*fs+ 1); % index starts at 1 in matlab so + 1
-
+    
     % low pass filter the data
     order = 2;
     cutoff = 10;
@@ -38,7 +38,7 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     GRFL_filt = LowpassFilterNan(GRFL,fs,order,cutoff);
     GRF = GRFR_filt + GRFL_filt;
 
-
+  
     maxlag = 40;
     [corr_phase_xcom,gain_phase_xcom, lag_xcom,corr_phase_com, ...
         gain_phase_com,gain_phase_vcom, lag_com] = feedback_com_xcom(GRF,COM_filt,FootL_filt,FootR_filt,events,maxlag,fs,L);

@@ -6,19 +6,14 @@ function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,Lfoot,
 
 % Input:
 % COM: Mediolateral position of the center of mass
-
 % Rfoot: Mediolater position of the right foot (e.g. based on right
 % heel marker)
-
 % Lfoot: Mediolater position of the right foot (e.g. based on right
 % heel marker)
-
 % events: Struct with gait events ordered in the order left heel strike
 % (lhs), right toe-off (rto), right heelstrike (rhs), left toe-off
 % (lto)
-
 % fsopto: Frequency at which COM Rfoot Lfoot were sampled
-
 % pred_samples: For which CoM samples during swing (1:51) you want to
 % fit the model.
 
