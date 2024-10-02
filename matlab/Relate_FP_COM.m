@@ -4,13 +4,17 @@
 
 clear all; close all; clc;
 % path to experimental data
+% info global coordinate system
+%   x: medio-lateral
+%   y: walking direction
+%   z: vertical
 datapath = '../ExampleData';
 
 % settings
-pred_samples = 1:50;
-order = 2;
-removeorigin = true;
-centerdata = true;
+pred_samples = 1:50; % use 
+order = 2; % order of derivatives (1 = include velocity), (2= velocity and acc)
+removeorigin = true; % 1= COM state w.r.t. contralateral foot
+centerdata = true; % true = demean dependent and independent variables
 
 % add subfolders
 addpath(genpath(pwd));
@@ -23,9 +27,9 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     Dat = readtable(filepath_data);
     Event = readtable(filepath_event);
     % restructure data
-    fs = 1./nanmean(diff(Dat.time));
+    fs = 1./nanmean(diff(Dat.time)); % get sampling frequency
     COM = Dat.COMx;
-    Rfoot = Dat.FootRx;
+    Rfoot = Dat.FootRx; 
     Lfoot = Dat.FootLx;
     % convert events to index frame (instead of time)
     events.lhs = round(Event.lhs*fs + 1); % index starts at 1 in matlab so + 1
@@ -33,7 +37,8 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     events.rto = round(Event.rto*fs+ 1); % index starts at 1 in matlab so + 1
     events.lto = round(Event.lto*fs+ 1); % index starts at 1 in matlab so + 1
     % run foot placement code
-    [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,Lfoot,events,fs,pred_samples,order,removeorigin,centerdata);
+    [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot, ...
+        Lfoot,events,fs,pred_samples,order,removeorigin,centerdata);
 end
 % plot figure
 figure();

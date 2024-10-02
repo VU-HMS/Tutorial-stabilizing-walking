@@ -1,5 +1,6 @@
 
-function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,Lfoot,events,fsopto,pred_samples,order,removeorigin,centerdata)
+function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot, ...
+    Lfoot,events,fsopto,pred_samples,order,removeorigin,centerdata)
 % Function to calculate a foot placement model and corresponding relative explained variance (R^2).
 % The foot placement model is a linear model correlating center of mass kinematic
 % state during swing to the subsequent foot placement.
@@ -152,7 +153,7 @@ OUT.COM.titel       = 'CoM position';
 OUT.COM_vel.titel   = 'CoM velocity';
 OUT.COM_acc.titel   = 'CoM acceleration';
 
-%%
+%% compute step width and step width variability
 foot_L       = foot_L(25,:)';
 origin_L     = origin_L(25,:)';
 foot_R       = foot_R(25,:)';
