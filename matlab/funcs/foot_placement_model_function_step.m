@@ -232,7 +232,8 @@ for i_pred_sample=pred_samples
     ind_R(isnan(sum(tmp,2)))            = [];
     OUT.Right_N.data(i_pred_sample)      = size(pred_Lstance,1);
 
-    stats = regstats(foot_R_sample,pred_Rstance(:,1:order),'linear');
+    stats = regstats(foot_R_sample,pred_Rstance(:,1:order),'linear',...
+        {'beta','covb','yhat','r','mse','rsquare','adjrsquare','tstat','fstat'});
     OUT.Right_pct.data(i_pred_sample)            = stats.rsquare;
     OUT.Right_pct.pval(i_pred_sample)            = stats.fstat.pval;
     OUT.Right_coeff1.data(i_pred_sample)         = stats.beta(2);
@@ -267,7 +268,8 @@ for i_pred_sample=pred_samples
     ind_L(isnan(sum(tmp,2)))            = [];
     OUT.Left_N.data(i_pred_sample)      = size(pred_Lstance,1);
 
-    stats = regstats(foot_L_sample,pred_Lstance(:,1:order),'linear');
+    stats = regstats(foot_L_sample,pred_Lstance(:,1:order),'linear',...
+        {'beta','covb','yhat','r','mse','rsquare','adjrsquare','tstat','fstat'});
     OUT.Left_pct.data(i_pred_sample)            = stats.rsquare;
     OUT.Left_pct.pval(i_pred_sample)            = stats.fstat.pval;
     OUT.Left_coeff1.data(i_pred_sample)         = stats.beta(2);
@@ -313,7 +315,8 @@ for i_pred_sample=pred_samples
     OUT.Combined_N.data(i_pred_sample)      = size(pred_Lstance,1);
 
 
-    stats = regstats(foot_combined,pred_combined(:,1:order),'linear');
+    stats = regstats(foot_combined,pred_combined(:,1:order),'linear',...
+        {'beta','covb','yhat','r','mse','rsquare','adjrsquare','tstat','fstat'});
     OUT.Combined_pct.data(i_pred_sample)            = stats.rsquare;
     OUT.Combined_pct.pval(i_pred_sample)            = stats.fstat.pval;
     OUT.Combined_coeff1.data(i_pred_sample)         = stats.beta(2);

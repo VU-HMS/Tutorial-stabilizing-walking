@@ -35,6 +35,8 @@ removeorigin = true; % 1= COM state w.r.t. contralateral foot
 centerdata = true; % true = demean dependent and independent variables
 
 % settings --- AnkleMoment =? COM
+Anklemoment_delay = 0.1; % 100 ms delay
+
 
 %% analysis
 
@@ -80,7 +82,8 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     % relate ankle moment to COM state
     treadmill_velocity = Dat.LeftBeltSpeed;% use nan if you want to compute this from marker coordinate
     [stats] = relate_com_anklemoment(t, Dat.COM_x, Dat.LeftFoot_x,...
-        Dat.LeftAnklePlantarFlexionMoment, Event, treadmill_velocity);
+        Dat.LeftAnklePlantarFlexionMoment, Event, Anklemoment_delay, ...
+        'treadmill_velocity',treadmill_velocity, 'BoolPlot', true, 'RemoveOutliers',true);
 else
     if ~exist(filepath_data,'file')
         disp([filepath_data ' not on computer'])

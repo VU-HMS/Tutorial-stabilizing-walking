@@ -1,32 +1,89 @@
 function [Rsq, kp, kv, stats] = relate_com_anklemoment(t, com, foot, ankle_moment, ...
-    events, varargin)
-%relate_com_anklemoment Summary of this function goes here
-%   Detailed explanation goes here
+    events,fb_delay, varargin)
+%relate_com_anklemoment computes correlation between delayed com position
+%and velocity (w.r.t. stance foot) and the ankle joint moment (feel free to
+% use another signal).
+%   input arguments:
+%       (1): t: time vector
+%       (2): com: array with com position
+%       (3): foot: array with position foot
+%       (4): ankle_moment: array with ankle moment
+%       (5): event: structure with events in time [s]
+%               lhs = left heel strike
+%               rhs = right heel strike
+%               lto = left toe off
+%               rto = right toe off
+%       (6) fb_delay: feedback delay
+%       (7) optional arguments:
+%       - treadmill_velocity: velocity of treadmill (can be a scalar of
+%                             array). If treadmill velocity is specified it
+%                             is used to compute the velocity of the COM 
+%                              w.r.t. foot (instead off numericaldervivative
+%                              foot velocity).
+%       - BoolPlot: creates default plot out outcomes
+%       - stancephase: array ranging between 0 and 1 with descrete time for
+%                      the feedback analysis.
+%       - nhs_omit: omits the last n gait cycles (e.g. end of experiment)
+%       - RemoveOutliers: if true datapoints outside 2 and 98th percentile 
+%                         are removed fromt he analysis
+%       
 
-treadmill_velocity = NaN;
-if ~isempty(varargin)
-    treadmill_velocity = varargin{1};
-end
 
-% other inputs: feedback delay
-fb_delay = 0.1; % feedback delay of 100 ms is default
+%% handle optional  inputs
+% default values of optional input arguments
 x_stancephase = 0.05:0.05:0.95; % evaluate feedback at multiple instances in gait cycle
 bool_nondim = false;
-nhs_omit_end = 3; % omits first 3 gait cycles
+nhs_omit_end = 0; % omits first 3 gait cycles
 boolplot = true;
-BoolRemoveOutliers = true;
+RemoveOutliers = true;
+treadmill_velocity = NaN;
 
+% Parse optional name-value pairs
+for i = 1:2:length(varargin)
+    switch varargin{i}
+        case 'treadmill_velocity'
+            treadmill_velocity = varargin{i+1};
+        case 'BoolPlot'
+            BoolPlot = varargin{i+1};
+        case 'stancephase'
+            x_stancephase = varargin{i+1};
+        case 'nhs_omit'
+            nhs_omit = varargin{i+1};
+        case 'RemoveOutliers'
+            RemoveOutliers = varargin{i+1};
+        otherwise
+            error('Unknown parameter %s', varargin{i});
+    end
+end
+
+%% compute position and velocity com w.r.t. stance foot
 % get numerical derivatives
 fs = 1./nanmean(diff(t));
 comdot = calc_derivative(com,fs);
 Foot_dot = calc_derivative(foot,fs);
 
+% number of left heelstrikes
+n_lhs = length(events.lhs);
+
 % compute treadmill velocity if needed
 if isnan(treadmill_velocity)
-    % get all indices stance phase
-
-    % average velocity foot during stance phase
-
+    % get all indices single stance phase
+    istance= zeros(length(t),1);
+    for i=1:length(events.rto)
+        if ~isnan(events.rto(i))
+            % get first rhs after rto 
+            iabove = events.rhs > events.rto(i);
+            tend = events.rhs(find(iabove, 1));
+            % indices single stance phase left leg
+            isel = t>events.rto(i) & t<tend ;
+            istance(isel) = 1;
+        end
+    end
+    % computes average velocity treadmill during single stance phase
+    % be aware that this assumes a constant treadmill velocity
+    treadmill_velocity = abs(nanmean(Foot_dot(istance == 1)));
+    % abs because we use absolute value of velocity (otherwise the input
+    % arguments should typically be a negative number).
 end
 
 % get COM position and velocity w.r.t foot
@@ -38,6 +95,7 @@ if bool_nondim
     disp('todo')
 end
 
+%% create table with delayed COM state and ankle moment at descrete time points
 % pre allocate matrices with dependent and independen variables
 n_lhs = length(events.lhs);
 COM_mat = nan(n_lhs, length(x_stancephase));
@@ -46,7 +104,6 @@ Tankle_mat = nan(n_lhs, length(x_stancephase));
 
 % loop over all gait cyles to relate ankle moment and COM state
 % loop over left heelstrikes
-n_lhs = length(events.lhs);
 ctDelay = 0; % counter for phase in gait cycle
 for iDelay = x_stancephase
     ctDelay = ctDelay + 1;
@@ -70,6 +127,7 @@ for iDelay = x_stancephase
     end
 end
 
+%% correlation
 % compute regression
 for i=1:length(x_stancephase)
     % get dependent and independent variables
@@ -80,9 +138,11 @@ for i=1:length(x_stancephase)
     X(inan,:) = [];
     Y(inan,:) = [];
     % ony include data in 5-95 precentile
-    iSel =  X(:,1)>prctile(X(:,1),2) & X(:,1)<prctile(X(:,1),98) &...
-        X(:,2)>prctile(X(:,2),2) & X(:,2)<prctile(X(:,2),98) &...
-        Y>prctile(Y,2) & Y<prctile(Y,98);
+    if RemoveOutliers
+        iSel =  X(:,1)>prctile(X(:,1),2) & X(:,1)<prctile(X(:,1),98) &...
+            X(:,2)>prctile(X(:,2),2) & X(:,2)<prctile(X(:,2),98) &...
+            Y>prctile(Y,2) & Y<prctile(Y,98);
+    end
     X = X(iSel,:);
     Y = Y(iSel);
     % run statistics
@@ -100,11 +160,13 @@ gains = [stats().beta];
 kp = gains(2,:);
 kv = gains(3,:);
 
+%% default figure
+
 % plot figure if desired
 mk = 2;
 if boolplot
     % standard figure
-    h = figure('Color',[1 1 1],'Name','vis correlation');
+    h = figure('Color',[1 1 1],'Name','Relate Moment-COM: outputs');
     subplot(1,3,1)
     plot(x_stancephase, Rsq,'Color',[0 0 0],'LineWidth',2);
     ylabel('Rsq')
@@ -124,7 +186,7 @@ if boolplot
     % a bit more adventurous figure to explore ankle moment and variance
     % explained
     y_scale = (max(ankle_moment) - min(ankle_moment))*7;
-    h = figure('Color',[1 1 1],'Name','vis correlation');
+    h = figure('Color',[1 1 1],'Name','Relate Moment-COM: interpret relation');
     for i=1:length(x_stancephase)
         % get dependent and independent variables
         Y = inputs(i).Y;
