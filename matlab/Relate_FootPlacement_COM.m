@@ -11,7 +11,7 @@ clear all; close all; clc;
 datapath = '../ExampleData';
 
 % settings
-pred_samples = 1:50; % use 
+pred_samples = 1:50; % use ?
 order = 2; % order of derivatives (1 = include velocity), (2= velocity and acc)
 removeorigin = true; % 1= COM state w.r.t. contralateral foot
 centerdata = true; % true = demean dependent and independent variables

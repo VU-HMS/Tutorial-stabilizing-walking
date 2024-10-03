@@ -47,7 +47,7 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     maxlag = 40; % maximal delay between COM state and GRF [number of frames]
     [corr_phase_xcom,gain_phase_xcom, lag_xcom,corr_phase_com, ...
         gain_phase_com,gain_phase_vcom, lag_com] = feedback_com_xcom(GRF, ...
-        COM_filt,FootL_filt,FootR_filt,events,maxlag,fs,L);
+        COM_filt,FootL_filt,FootR_filt,events,fs,maxlag,L);
 end
 
 
