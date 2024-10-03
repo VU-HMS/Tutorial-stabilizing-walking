@@ -1,6 +1,6 @@
 
 function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot, ...
-    Lfoot,events,fsopto,pred_samples,order,removeorigin,centerdata)
+    Lfoot,events,fsopto,pred_samples,order,removeorigin,centerdata, varargin)
 % Function to calculate a foot placement model and corresponding relative explained variance (R^2).
 % The foot placement model is a linear model correlating center of mass kinematic
 % state during swing to the subsequent foot placement.
@@ -27,6 +27,10 @@ function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot, ...
 
 % centerdata: Option to demean the dependent and independent variables
 % (centerdata == 1) or not.
+
+% variable input arguments:
+%   - 'BoolPlot': default plot
+
 
 % Output:
 
@@ -68,6 +72,18 @@ function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot, ...
 %           error_right         :   right foot placement prediction error i.e. residual
 %           error_left          :   left foot placement prediction error i.e residual
 %           error_combined      :   foot placement predicion error (left & right) i.e. residual
+
+
+%% optional input arguments
+BoolPlot = false;
+for i = 1:2:length(varargin)
+    switch varargin{i}
+        case 'BoolPlot'
+            BoolPlot = varargin{i+1};
+        otherwise
+            error('Unknown parameter %s', varargin{i});
+    end
+end
 
 %% actual calculations. Start with setting things up.
 % check the incoming events.
@@ -345,4 +361,32 @@ warning off
 intermediates.error_right(intermediates.error_right==0)=nan;
 intermediates.error_left(intermediates.error_left==0)=nan;
 intermediates.error_combined(intermediates.error_combined==0)=nan;
+
+%% plot output
+if BoolPlot
+    % plot main outcomes
+    h = figure('Color',[1 1 1],'Name','Relate foot placement - COM: outputs');
+    subplot(2,2,1);
+    plot(OUT.Combined_pct.data,'LineWidth',2);
+    ylabel(OUT.Combined_pct.titel);
+    set(gca,'box','off');
+    set(gca,'LineWidth',1.6);
+    set(gca,'FontSize',12);
+    xlabel('% swing gait cycle');
+
+    subplot(2,2,2);
+    plot(OUT.Left_pct.data,'b','LineWidth',2); hold on;
+    plot(OUT.Right_pct.data,'r','LineWidth',2);
+    ylabel('Explained variance Left/Right leg');
+    set(gca,'box','off');
+    set(gca,'LineWidth',1.6);
+    set(gca,'FontSize',12);
+    xlabel('% swing gait cycle');
+    legend('Left leg','Right leg');
+
+    % plot FP momdel time series
+    subplot(2,2,3:4);
+    FPmodelTimeseriesPlot(COM,Lfoot,Rfoot,events,fsopto, intermediates)
+
+end
 

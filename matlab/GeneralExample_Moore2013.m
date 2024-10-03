@@ -9,7 +9,7 @@ clear all; close all; clc;
 %   x: walking direction
 %   y: vertical
 %   z: medio-lateral
-datapath = 'C:\Users\mat950\Documents\Data\Moore2013_CSV\067';
+datapath = '../ExampleData/Moore2013';
 
 % add path with functions
 addpath(fullfile(pwd,'funcs'));
@@ -73,11 +73,13 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     % relate GRF to COM state    
     [corr_phase_xcom,gain_phase_xcom, lag_xcom,corr_phase_com, ...
         gain_phase_com,gain_phase_vcom, lag_com] = feedback_com_xcom(GRF, ...
-        COM_filt,FootL_filt,FootR_filt,events,fs,maxlag,L);
+        COM_filt,FootL_filt,FootR_filt,events,fs,maxlag,L,...
+        'BoolPlot', true);
 
     % relate Foot placement to COM state
     [OUT,intermediates]=foot_placement_model_function_step(Dat.COM_z,Dat.RightFoot_z, ...
-        Dat.LeftFoot_z,events,fs,pred_samples,order_derivative,removeorigin,centerdata);
+        Dat.LeftFoot_z,events,fs,pred_samples,order_derivative,removeorigin,centerdata,...
+        'BoolPlot', true);
 
     % relate ankle moment to COM state
     treadmill_velocity = Dat.LeftBeltSpeed;% use nan if you want to compute this from marker coordinate
@@ -92,30 +94,3 @@ else
         disp([filepath_event ' not on computer'])
     end
 end
-
-% plot GRF / COM
-figure();
-subplot(2,2,1)
-xVal = 51:100;
-plot(xVal,squeeze(corr_phase_xcom(:,1,2)),'Color',[0.6 0.6 0.6],'LineWidth',1.4); hold on;
-set(gca,'YLim',[-1,1]);
-subplot(2,2,2)
-xVal = 51:100;
-plot(xVal,squeeze(corr_phase_xcom(:,2,2)),'Color',[0.6 0.6 0.6],'LineWidth',1.4); hold on;
-set(gca,'YLim',[-1,1]);
-subplot(2,2,3)
-xVal = 51:100;
-plot(xVal,squeeze(gain_phase_xcom(:,1,2)),'Color',[0.6 0.6 0.6],'LineWidth',1.4); hold on;
-set(gca,'YLim',[-2500,1000]);
-subplot(2,2,4)
-xVal = 51:100;
-plot(xVal,squeeze(gain_phase_xcom(:,2,2)),'Color',[0.6 0.6 0.6],'LineWidth',1.4); hold on;
-set(gca,'YLim',[-2500,1000]);
-
-
-% plot Foot placement / COM
-figure();
-plot(OUT.Combined_pct.data);
-ylabel(OUT.Combined_pct.ylabel);
-ylabel(OUT.Combined_pct.titel);
-

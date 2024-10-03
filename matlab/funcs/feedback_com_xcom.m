@@ -1,5 +1,6 @@
 function [corr_phase_xcom,gain_phase_xcom,lag_xcom,corr_phase_com,gain_phase_com,...
-    gain_phase_vcom,lag_com] = feedback_com_xcom(force,com,lfoot,rfoot,events,fs,maxlag,L)
+    gain_phase_vcom,lag_com] = feedback_com_xcom(force,com,lfoot,rfoot,events,...
+    fs,maxlag,L,varargin)
 % feedback_com_xcom computed the relation between the ground reaction
 % forces and the extrapolated center of mass information as a function of
 % the gait cycle for a range of delays  between both signals
@@ -18,6 +19,18 @@ function [corr_phase_xcom,gain_phase_xcom,lag_xcom,corr_phase_com,gain_phase_com
 % fs: Frequency at which COM Rfoot Lfoot were sample
 % maxlag: the max lag at which the minimum correlation can occur
 % L: leglength (m)
+
+BoolPlot = false;
+for i = 1:2:length(varargin)
+    switch varargin{i}
+        case 'BoolPlot'
+            BoolPlot = varargin{i+1};
+        otherwise
+            error('Unknown parameter %s', varargin{i});
+    end
+end
+
+
 
 [events,flag] = order_events(events);
 if flag~=0
@@ -52,9 +65,9 @@ for dim = 1:size(com,2) % dim = 1 for ML; dim = 2 for AP
         ndata2 = nan(100,maxHs-1,6);
         for var = 1:6
             if ft == 1
-                tmp = normalizetime(dimdata(:,var),events.lhs);          
+                tmp = normalizetime(dimdata(:,var),events.lhs);
             else
-               tmp = normalizetime(dimdata(:,var),events.rhs);          
+                tmp = normalizetime(dimdata(:,var),events.rhs);
             end
             ncycl = length(tmp(1,:));
             ndata2(:,1:ncycl,var)  = tmp;
@@ -113,4 +126,54 @@ for dim = 1:size(com,2) % dim = 1 for ML; dim = 2 for AP
         gain_phase_vcom(:,dim,ft)   = gain_force_vcom(:,lag_com(dim,ft));
 
     end
+end
+
+if BoolPlot
+
+
+    % plot correlation coefficient
+    h = figure('Color',[1 1 1],'Name','Relate GRF-COM: outputs');
+    subplot(2,2,1)
+    xVal = 51:100;
+    plot(xVal,squeeze(corr_phase_xcom(:,1,2)),'Color',[0.6 0.6 0.6],'LineWidth',2); hold on;
+    set(gca,'YLim',[-1,1]);
+    ylabel('corr coef dim 1')
+
+    subplot(2,2,2)
+    xVal = 51:100;
+    plot(xVal,squeeze(corr_phase_xcom(:,2,2)),'Color',[0.6 0.6 0.6],'LineWidth',2); hold on;
+    set(gca,'YLim',[-1,1]);
+    ylabel('corr coef dim 2')
+
+    % plot gains
+    % get range of gains for limits
+    min_gain = min(min([gain_phase_xcom(:,:,2)]));
+    max_gain = max(max([gain_phase_xcom(:,:,2)]));
+    deltay = max(abs([min_gain max_gain]));
+    min_gain = min_gain-0.1*deltay;
+    max_gain = max_gain+0.1*deltay;
+
+
+    subplot(2,2,3)
+    xVal = 51:100;
+    plot(xVal,squeeze(gain_phase_xcom(:,1,2)),'Color',[0.6 0.6 0.6],'LineWidth',2); hold on;
+    set(gca,'YLim',[min_gain,max_gain]);
+    xlabel('% gait cycle');
+    ylabel('gain dim 1')
+
+    subplot(2,2,4)
+    xVal = 51:100;
+    plot(xVal,squeeze(gain_phase_xcom(:,2,2)),'Color',[0.6 0.6 0.6],'LineWidth',2); hold on;
+    set(gca,'YLim',[min_gain,max_gain]);
+    xlabel('% gait cycle');
+    ylabel('gain dim 2')
+
+    for i =1:4
+        subplot(2,2,i);
+        set(gca,'box','off');
+        set(gca,'LineWidth',1.6);
+        set(gca,'FontSize',12);
+    end
+
+
 end

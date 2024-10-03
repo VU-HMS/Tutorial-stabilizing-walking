@@ -17,16 +17,16 @@ function [Rsq, kp, kv, stats] = relate_com_anklemoment(t, com, foot, ankle_momen
 %       (7) optional arguments:
 %       - treadmill_velocity: velocity of treadmill (can be a scalar of
 %                             array). If treadmill velocity is specified it
-%                             is used to compute the velocity of the COM 
+%                             is used to compute the velocity of the COM
 %                              w.r.t. foot (instead off numericaldervivative
 %                              foot velocity).
 %       - BoolPlot: creates default plot out outcomes
 %       - stancephase: array ranging between 0 and 1 with descrete time for
 %                      the feedback analysis.
 %       - nhs_omit: omits the last n gait cycles (e.g. end of experiment)
-%       - RemoveOutliers: if true datapoints outside 2 and 98th percentile 
+%       - RemoveOutliers: if true datapoints outside 2 and 98th percentile
 %                         are removed fromt he analysis
-%       
+%
 
 
 %% handle optional  inputs
@@ -34,8 +34,8 @@ function [Rsq, kp, kv, stats] = relate_com_anklemoment(t, com, foot, ankle_momen
 x_stancephase = 0.05:0.05:0.95; % evaluate feedback at multiple instances in gait cycle
 bool_nondim = false;
 nhs_omit_end = 0; % omits first 3 gait cycles
-boolplot = true;
-RemoveOutliers = true;
+boolplot = false;
+RemoveOutliers = false;
 treadmill_velocity = NaN;
 
 % Parse optional name-value pairs
@@ -44,11 +44,11 @@ for i = 1:2:length(varargin)
         case 'treadmill_velocity'
             treadmill_velocity = varargin{i+1};
         case 'BoolPlot'
-            BoolPlot = varargin{i+1};
+            boolplot = varargin{i+1};
         case 'stancephase'
             x_stancephase = varargin{i+1};
         case 'nhs_omit'
-            nhs_omit = varargin{i+1};
+            nhs_omit_end = varargin{i+1};
         case 'RemoveOutliers'
             RemoveOutliers = varargin{i+1};
         otherwise
@@ -71,7 +71,7 @@ if isnan(treadmill_velocity)
     istance= zeros(length(t),1);
     for i=1:length(events.rto)
         if ~isnan(events.rto(i))
-            % get first rhs after rto 
+            % get first rhs after rto
             iabove = events.rhs > events.rto(i);
             tend = events.rhs(find(iabove, 1));
             % indices single stance phase left leg
@@ -142,9 +142,10 @@ for i=1:length(x_stancephase)
         iSel =  X(:,1)>prctile(X(:,1),2) & X(:,1)<prctile(X(:,1),98) &...
             X(:,2)>prctile(X(:,2),2) & X(:,2)<prctile(X(:,2),98) &...
             Y>prctile(Y,2) & Y<prctile(Y,98);
+        X = X(iSel,:);
+        Y = Y(iSel);
     end
-    X = X(iSel,:);
-    Y = Y(iSel);
+
     % run statistics
     stats(i) = regstats(Y,X,'linear',{'beta','covb','yhat','r',...
         'mse','rsquare','adjrsquare','tstat','fstat'});
@@ -167,17 +168,17 @@ mk = 2;
 if boolplot
     % standard figure
     h = figure('Color',[1 1 1],'Name','Relate Moment-COM: outputs');
-    subplot(1,3,1)
+    subplot(2,3,1)
     plot(x_stancephase, Rsq,'Color',[0 0 0],'LineWidth',2);
     ylabel('Rsq')
-    subplot(1,3,2)
+    subplot(2,3,2)
     plot(x_stancephase, kp,'Color',[0 0 0],'LineWidth',2);
     ylabel('position gain')
-    subplot(1,3,3)
+    subplot(2,3,3)
     plot(x_stancephase, kv,'Color',[0 0 0],'LineWidth',2);
     ylabel('velocity gain')
     for i= 1:3
-        subplot(1,3,i)
+        subplot(2,3,i)
         set(gca,'box','off');
         set(gca,'LineWidth',1.6);
         set(gca,'FontSize',12);
@@ -186,7 +187,7 @@ if boolplot
     % a bit more adventurous figure to explore ankle moment and variance
     % explained
     y_scale = (max(ankle_moment) - min(ankle_moment))*7;
-    h = figure('Color',[1 1 1],'Name','Relate Moment-COM: interpret relation');
+    subplot(2,3,4:6);
     for i=1:length(x_stancephase)
         % get dependent and independent variables
         Y = inputs(i).Y;

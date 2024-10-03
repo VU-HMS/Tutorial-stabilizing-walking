@@ -29,7 +29,7 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     % restructure data
     fs = 1./nanmean(diff(Dat.time)); % get sampling frequency
     COM = Dat.COMx;
-    Rfoot = Dat.FootRx; 
+    Rfoot = Dat.FootRx;
     Lfoot = Dat.FootLx;
     % convert events to index frame (instead of time)
     events.lhs = round(Event.lhs*fs + 1); % index starts at 1 in matlab so + 1
@@ -38,10 +38,13 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     events.lto = round(Event.lto*fs+ 1); % index starts at 1 in matlab so + 1
     % run foot placement code
     [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot, ...
-        Lfoot,events,fs,pred_samples,order,removeorigin,centerdata);
+        Lfoot,events,fs,pred_samples,order,removeorigin,centerdata,...
+        'BoolPlot',true);
+else
+    if ~exist(filepath_data,'file')
+        disp([filepath_data ' not on computer'])
+    end
+    if ~exist(filepath_event,'file')
+        disp([filepath_event ' not on computer'])
+    end
 end
-% plot figure
-figure();
-plot(OUT.Combined_pct.data);
-ylabel(OUT.Combined_pct.ylabel);
-ylabel(OUT.Combined_pct.titel);

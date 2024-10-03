@@ -10,6 +10,9 @@ clear all; close all; clc;
 %   z: vertical
 datapath = '../ExampleData';
 
+% add path with functions
+addpath(fullfile(pwd,'funcs'));
+
 % path to datafiles
 filepath_data = fullfile(datapath,'S3','SteadyState_normal_data.csv');
 filepath_event = fullfile(datapath,'S3','SteadyState_normal_event.csv');
@@ -47,27 +50,12 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     maxlag = 40; % maximal delay between COM state and GRF [number of frames]
     [corr_phase_xcom,gain_phase_xcom, lag_xcom,corr_phase_com, ...
         gain_phase_com,gain_phase_vcom, lag_com] = feedback_com_xcom(GRF, ...
-        COM_filt,FootL_filt,FootR_filt,events,fs,maxlag,L);
+        COM_filt,FootL_filt,FootR_filt,events,fs,maxlag,L, 'BoolPlot', true);
+else
+    if ~exist(filepath_data,'file')
+        disp([filepath_data ' not on computer'])
+    end
+    if ~exist(filepath_event,'file')
+        disp([filepath_event ' not on computer'])
+    end
 end
-
-
-%% plot results
-
-
-figure();
-subplot(2,2,1)
-xVal = 51:100;
-plot(xVal,squeeze(corr_phase_xcom(:,1,2)),'Color',[0.6 0.6 0.6],'LineWidth',1.4); hold on;
-set(gca,'YLim',[-1,1]);
-subplot(2,2,2)
-xVal = 51:100;
-plot(xVal,squeeze(corr_phase_xcom(:,2,2)),'Color',[0.6 0.6 0.6],'LineWidth',1.4); hold on;
-set(gca,'YLim',[-1,1]);
-subplot(2,2,3)
-xVal = 51:100;
-plot(xVal,squeeze(gain_phase_xcom(:,1,2)),'Color',[0.6 0.6 0.6],'LineWidth',1.4); hold on;
-set(gca,'YLim',[-2500,1000]);
-subplot(2,2,4)
-xVal = 51:100;
-plot(xVal,squeeze(gain_phase_xcom(:,2,2)),'Color',[0.6 0.6 0.6],'LineWidth',1.4); hold on;
-set(gca,'YLim',[-2500,1000]);
