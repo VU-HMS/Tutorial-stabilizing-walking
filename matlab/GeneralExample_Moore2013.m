@@ -15,12 +15,12 @@ datapath = '../ExampleData/Moore2013';
 addpath(fullfile(pwd,'funcs'));
 
 % path to datafiles -- unperturbed walking
-% filepath_data = fullfile(datapath,'UnpertPre_data.csv');
-% filepath_event = fullfile(datapath,'UnpertPre__event.csv');
+filepath_data = fullfile(datapath,'UnpertPre_data.csv');
+filepath_event = fullfile(datapath,'UnpertPre__event.csv');
 
 % path to datafiles -- perturbed walking
-filepath_data = fullfile(datapath,'Pert_data.csv');
-filepath_event = fullfile(datapath,'Pert__event.csv');
+% filepath_data = fullfile(datapath,'Pert_data.csv');
+% filepath_event = fullfile(datapath,'Pert__event.csv');
 
 %% Settings
 % settings --- GRF =? COM

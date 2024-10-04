@@ -112,7 +112,7 @@ for iDelay = x_stancephase
         % find toe-off
         iabove = events.lto > events.lhs(i);
         dt_stance = events.lto(find(iabove, 1)) - events.lhs(i);
-        if ~isnan(events.lhs(i))
+        if ~isnan(events.lhs(i)) & ~isempty(dt_stance)
             % get COM state information
             iabove = t > (events.lhs(i) + ths_delay * dt_stance);
             ix = find(iabove, 1);
