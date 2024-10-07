@@ -37,7 +37,8 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     treadmill_velocity = 1.1;% use nan if you want to compute this from marker coordinate
 
     % relate ankle moment to foot placement
-    [stats] = relate_com_anklemoment(t, COM, FootL,AnkleMoment, Event, ...
+    [OutTa.Rsq, OutTa.kp, OutTa.kv,  OutTa.residuals, OutTa.stats] = ...
+        relate_com_anklemoment(t, COM, FootL,AnkleMoment, Event, ...
         delay, 'treadmill_velocity', treadmill_velocity, 'BoolPlot',true);
 else
     if ~exist(filepath_data,'file')

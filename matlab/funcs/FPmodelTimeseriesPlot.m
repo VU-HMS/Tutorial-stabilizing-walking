@@ -10,6 +10,12 @@ events.lto=events.lto-events.lhs(1)+1;
 events.rto=events.rto-events.lhs(1)+1;
 events.rhs=events.rhs-events.lhs(1)+1;
 events.lhs=events.lhs-events.lhs(1)+1;
+% remove nans in events
+events.lhs(isnan(events.lhs)) = [];
+events.lto(isnan(events.lto)) = [];
+events.rhs(isnan(events.rhs)) = [];
+events.rto(isnan(events.rto)) = [];
+
 
 %% some settings for foot placement model
 pred_samples    = 1:51;
@@ -21,9 +27,8 @@ centerdata      = 1;
 
 ms_l =round((events.lhs+events.lto)/2);
 ms_r =round((events.rhs(1:end-1)+events.rto(2:end))/2);
+
 %select only first 10 seconds
-
-
 
 y_l = Lfoot(ms_l);
 y_r = Rfoot(ms_r);

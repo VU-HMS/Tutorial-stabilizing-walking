@@ -15,12 +15,12 @@ datapath = '../ExampleData/Moore2013';
 addpath(fullfile(pwd,'funcs'));
 
 % path to datafiles -- unperturbed walking
-filepath_data = fullfile(datapath,'UnpertPre_data.csv');
-filepath_event = fullfile(datapath,'UnpertPre__event.csv');
+% filepath_data = fullfile(datapath,'UnpertPre_data.csv');
+% filepath_event = fullfile(datapath,'UnpertPre__event.csv');
 
 % path to datafiles -- perturbed walking
-% filepath_data = fullfile(datapath,'Pert_data.csv');
-% filepath_event = fullfile(datapath,'Pert__event.csv');
+filepath_data = fullfile(datapath,'Pert_data.csv');
+filepath_event = fullfile(datapath,'Pert__event.csv');
 
 %% Settings
 % settings --- GRF =? COM
@@ -61,6 +61,8 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     GRFR = [Dat.RightGRF_x, Dat.RightGRF_z];
     FootL = [Dat.LeftFoot_x Dat.LeftFoot_z]; % horizontal Foot position
     FootR = [Dat.RightFoot_x Dat.RightFoot_z];
+    % get velocity of the treadmill
+    treadmill_velocity = Dat.LeftBeltSpeed;% use nan if you want to compute this from marker coordinate
 
     % low pass filter the data
     COM_filt = LowpassFilterNan(COM,fs,order,cutoff);
@@ -69,21 +71,24 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     GRFR_filt = LowpassFilterNan(GRFR,fs,order,cutoff);
     GRFL_filt = LowpassFilterNan(GRFL,fs,order,cutoff);
     GRF = GRFR_filt + GRFL_filt; % combined GRF
+    treadmill_velocity= LowpassFilterNan(treadmill_velocity, fs, order, cutoff);
+    % add zero velocity in medio-lateral direciton
+    treadmill_velocity_xz= [treadmill_velocity, zeros(length(t),1)];
 
     % relate GRF to COM state    
     [corr_phase_xcom,gain_phase_xcom, lag_xcom,corr_phase_com, ...
         gain_phase_com,gain_phase_vcom, lag_com] = feedback_com_xcom(GRF, ...
         COM_filt,FootL_filt,FootR_filt,events,fs,maxlag,L,...
-        'BoolPlot', true);
+        'BoolPlot', true,'treadmill_velocity', treadmill_velocity_xz);
 
     % relate Foot placement to COM state
     [OUT,intermediates]=foot_placement_model_function_step(Dat.COM_z,Dat.RightFoot_z, ...
         Dat.LeftFoot_z,events,fs,pred_samples,order_derivative,removeorigin,centerdata,...
-        'BoolPlot', true);
+        'BoolPlot', true,'treadmill_velocity', 0);
 
-    % relate ankle moment to COM state
-    treadmill_velocity = Dat.LeftBeltSpeed;% use nan if you want to compute this from marker coordinate
-    [stats] = relate_com_anklemoment(t, Dat.COM_x, Dat.LeftFoot_x,...
+    % relate ankle moment to COM state    
+    [OutTa.Rsq, OutTa.kp, OutTa.kv,OutTa.residuals, OutTa.stats] = ...
+        relate_com_anklemoment(t, Dat.COM_x, Dat.LeftFoot_x,...
         Dat.LeftAnklePlantarFlexionMoment, Event, Anklemoment_delay, ...
         'treadmill_velocity',treadmill_velocity, 'BoolPlot', true, 'RemoveOutliers',true);
 else

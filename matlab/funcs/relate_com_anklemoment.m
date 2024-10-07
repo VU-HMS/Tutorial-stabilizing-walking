@@ -1,4 +1,4 @@
-function [Rsq, kp, kv, stats] = relate_com_anklemoment(t, com, foot, ankle_moment, ...
+function [Rsq, kp, kv, residuals, stats, settings, inputs] = relate_com_anklemoment(t, com, foot, ankle_moment, ...
     events,fb_delay, varargin)
 %relate_com_anklemoment computes correlation between delayed com position
 %and velocity (w.r.t. stance foot) and the ankle joint moment (feel free to
@@ -27,7 +27,14 @@ function [Rsq, kp, kv, stats] = relate_com_anklemoment(t, com, foot, ankle_momen
 %       - RemoveOutliers: if true datapoints outside 2 and 98th percentile
 %                         are removed fromt he analysis
 %
-
+%   output arguments:
+%       - Rsq: variance explained
+%       - kp: position gain
+%       - kv: velocity gain
+%       - residuals: mean of the absolute value of the residuals
+%       - stats: general output statistics
+%       - settings: intput settings for this analysis
+%       - inputs: input data for linear regression
 
 %% handle optional  inputs
 % default values of optional input arguments
@@ -55,6 +62,12 @@ for i = 1:2:length(varargin)
             error('Unknown parameter %s', varargin{i});
     end
 end
+settings.x_stancephase = x_stancephase; % evaluate feedback at multiple instances in gait cycle
+settings.bool_nondim = bool_nondim;
+settings.nhs_omit_end = nhs_omit_end; % omits first 3 gait cycles
+settings.boolplot = boolplot;
+settings.RemoveOutliers = RemoveOutliers;
+settings.treadmill_velocity = treadmill_velocity;
 
 %% compute position and velocity com w.r.t. stance foot
 % get numerical derivatives
@@ -160,6 +173,10 @@ Rsq = [stats().rsquare];
 gains = [stats().beta];
 kp = gains(2,:);
 kv = gains(3,:);
+residuals = nan(length(stats),1);
+for i =1:length(stats)
+    residuals(i) = nanmean(abs(stats(i).r));
+end
 
 %% default figure
 
@@ -168,17 +185,20 @@ mk = 2;
 if boolplot
     % standard figure
     h = figure('Color',[1 1 1],'Name','Relate Moment-COM: outputs');
-    subplot(2,3,1)
+    subplot(2,4,1)
     plot(x_stancephase, Rsq,'Color',[0 0 0],'LineWidth',2);
     ylabel('Rsq')
-    subplot(2,3,2)
+    subplot(2,4,2)
     plot(x_stancephase, kp,'Color',[0 0 0],'LineWidth',2);
     ylabel('position gain')
-    subplot(2,3,3)
+    subplot(2,4,3)
     plot(x_stancephase, kv,'Color',[0 0 0],'LineWidth',2);
     ylabel('velocity gain')
-    for i= 1:3
-        subplot(2,3,i)
+    subplot(2,4,4)
+    plot(x_stancephase, residuals,'Color',[0 0 0],'LineWidth',2);
+    ylabel('residuals [Nm]')
+    for i= 1:4
+        subplot(2,4,i)
         set(gca,'box','off');
         set(gca,'LineWidth',1.6);
         set(gca,'FontSize',12);
@@ -187,7 +207,7 @@ if boolplot
     % a bit more adventurous figure to explore ankle moment and variance
     % explained
     y_scale = (max(ankle_moment) - min(ankle_moment))*7;
-    subplot(2,3,4:6);
+    subplot(2,4,5:8);
     for i=1:length(x_stancephase)
         % get dependent and independent variables
         Y = inputs(i).Y;

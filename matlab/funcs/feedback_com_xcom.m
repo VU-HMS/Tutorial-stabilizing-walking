@@ -21,26 +21,52 @@ function [corr_phase_xcom,gain_phase_xcom,lag_xcom,corr_phase_com,gain_phase_com
 % L: leglength (m)
 
 BoolPlot = false;
+treadmill_velocity = NaN;
 for i = 1:2:length(varargin)
     switch varargin{i}
         case 'BoolPlot'
             BoolPlot = varargin{i+1};
+        case 'treadmill_velocity'
+            treadmill_velocity = varargin{i+1};
         otherwise
             error('Unknown parameter %s', varargin{i});
     end
 end
 
-
-
+% events should be in a specific order for this function
 [events,flag] = order_events(events);
 if flag~=0
     error('there is something wrong with your events, returning')
 end
 
-
+% compute com velocity
 vcom = calc_derivative(com,fs);
-xcom = com + vcom./ sqrt(9.81/L);
 
+% COM velocity w.r.t. ground (e.g. treadmill). 
+if ~isnan(treadmill_velocity)
+
+    if length(treadmill_velocity) == 2
+        % this is a constant velocity of treadmill
+        vcom = vcom + treadmill_velocity;
+    elseif all(size(treadmill_velocity) == size(com))
+        % variable velocity treadmill
+        vcom = vcom + treadmill_velocity;
+    elseif isscalar(treadmill_velocity)
+        disp(['warning: please specify a treadmill velocity in anterior posterior' ...
+            'and medio-lateral direction. we assume that treadmill velocity is' ...
+            'on signal with largest rom in foot position'])
+        rom_foot = prctile(lfoot,98)- prctile(lfoot,2);
+        [~,imax] =  max(rom_foot);
+        vcom(:,imax) = vcom(:, imax) + treadmill_velocity;
+    else
+        disp(['input argument treadmill velocity not used because treadmill',...
+            ' velocity is ' num2str(length(treadmill_velocity)) ' frames and ',...
+            'COM data is ' length(COM_vel) ' frames'])
+    end
+end
+
+% compute extrapolated center of mass
+xcom = com + vcom./ sqrt(9.81/L);
 
 n_strides = length(events.lhs) - 1;
 stride_f = nanmean(diff(events.lhs));
@@ -152,7 +178,6 @@ if BoolPlot
     deltay = max(abs([min_gain max_gain]));
     min_gain = min_gain-0.1*deltay;
     max_gain = max_gain+0.1*deltay;
-
 
     subplot(2,2,3)
     xVal = 51:100;

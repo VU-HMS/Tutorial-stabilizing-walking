@@ -46,11 +46,15 @@ if exist(filepath_data,'file') && exist(filepath_event,'file')
     GRFL_filt = LowpassFilterNan(GRFL,fs,order,cutoff);
     GRF = GRFR_filt + GRFL_filt; % combined GRF
 
+    % treadmill_velocity
+    treadmill_velocity = [0 1.1]; % 0 in medio-lateral, 1.1 in anterior_posterior
+
     % relate GRF to COM state
     maxlag = 40; % maximal delay between COM state and GRF [number of frames]
     [corr_phase_xcom,gain_phase_xcom, lag_xcom,corr_phase_com, ...
         gain_phase_com,gain_phase_vcom, lag_com] = feedback_com_xcom(GRF, ...
-        COM_filt,FootL_filt,FootR_filt,events,fs,maxlag,L, 'BoolPlot', true);
+        COM_filt,FootL_filt,FootR_filt,events,fs,maxlag,L, 'BoolPlot', true,...
+        'treadmill_velocity',treadmill_velocity);
 else
     if ~exist(filepath_data,'file')
         disp([filepath_data ' not on computer'])
