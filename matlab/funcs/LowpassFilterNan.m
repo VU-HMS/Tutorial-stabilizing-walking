@@ -8,6 +8,7 @@ iNoNaN = ~isnan(COM(:,1));
 
 % interpolate the temporary remove nans
 IndexAll = 1:length(COM);
+IndexAll = IndexAll';
 IndexNoNaN = IndexAll(iNoNaN);
 COM_int = interp1(IndexNoNaN, COM(iNoNaN,:),IndexAll, 'spline');
 

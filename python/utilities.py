@@ -7,6 +7,8 @@ import pandas as pd
 import csv
 from scipy.stats import pearsonr, linregress
 from scipy.signal import butter, filtfilt
+import statsmodels.api as sm
+from matplotlib.gridspec import GridSpec
 
 
 # detect heelstrike based on vertical GRF
@@ -971,3 +973,131 @@ def PlotBar(x, y, *args):
     xrange = 0.2
     dx = (np.arange(1, n + 1) / n * xrange - 0.5 * xrange) + x
     plt.plot(dx, y, 'o', markerfacecolor=Cs, color=[0.2, 0.2, 0.2], markersize=mk)
+
+
+# relate com kinematics to ankle moment (or other input signal)
+def relate_com_anklemoment(t, com, foot, ankle_moment, events, fb_delay,
+                           treadmill_velocity = np.nan,
+                           x_stancephase = np.arange(0.05, 0.95, 0.05),
+                           bool_nondim = False,
+                           nhs_omit_end = 0,
+                           boolplot = False,
+                           RemoveOutliers = False):
+
+    # Compute position and velocity COM w.r.t. stance foot
+    fs = 1 / np.nanmean(np.diff(t))
+    comdot = central_difference(t, com)
+    foot_dot = central_difference(t, foot)
+
+    # Compute treadmill velocity if needed
+    if np.isnan(treadmill_velocity):
+        istance = np.zeros(len(t))
+        for i in range(len(events['rto'])):
+            if not np.isnan(events['rto'][i]):
+                iabove = events['rhs'] > events['rto'][i]
+                tend = events['rhs'][np.argmax(iabove)]
+                isel = (t > events['rto'][i]) & (t < tend)
+                istance[isel] = 1
+        treadmill_velocity = np.abs(np.nanmean(foot_dot[istance == 1]))
+
+    # Get COM position and velocity w.r.t foot
+    com_foot = com - foot
+    comdot_foot = comdot + treadmill_velocity
+
+    # Create matrices for delayed COM state and ankle moment at discrete time points
+    n_lhs = len(events['lhs'])
+    COM_mat = np.full((n_lhs, len(x_stancephase)), np.nan)
+    COMd_mat = np.full((n_lhs, len(x_stancephase)), np.nan)
+    Tankle_mat = np.full((n_lhs, len(x_stancephase)), np.nan)
+
+    # Loop over all gait cycles to relate ankle moment and COM state
+    for iDelay, ths_delay in enumerate(x_stancephase):
+        for i in range(n_lhs - nhs_omit_end):
+            dt_stance = events['lto'][np.argmax(events['lto'] > events['lhs'][i])] - events['lhs'][i]
+            ix = np.argmax(t > (events['lhs'][i] + ths_delay * dt_stance))
+            iy = np.argmax(t > (events['lhs'][i] + ths_delay * dt_stance + fb_delay))
+
+            if not np.isnan(events['lhs'][i]):
+                COM_mat[i, iDelay] = com_foot[ix]
+                COMd_mat[i, iDelay] = comdot_foot[ix]
+                Tankle_mat[i, iDelay] = ankle_moment[iy]
+
+    # Correlation and regression
+    Rsq = []
+    kp = []
+    kv = []
+    stats = []
+    inputs = []
+
+    for i in range(len(x_stancephase)):
+        X = np.column_stack([COM_mat[:, i], COMd_mat[:, i]])
+        Y = Tankle_mat[:, i]
+
+        # Remove NaNs
+        mask = np.isnan(X).any(axis=1) | np.isnan(Y)
+        X = X[~mask]
+        Y = Y[~mask]
+
+        if RemoveOutliers:
+            iSel = (np.percentile(X[:, 0], 2) < X[:, 0]) & (X[:, 0] < np.percentile(X[:, 0], 98)) & \
+                   (np.percentile(X[:, 1], 2) < X[:, 1]) & (X[:, 1] < np.percentile(X[:, 1], 98)) & \
+                   (np.percentile(Y, 2) < Y) & (Y < np.percentile(Y, 98))
+            X = X[iSel]
+            Y = Y[iSel]
+
+        # Linear regression
+        X = sm.add_constant(X)  # Add intercept
+        model = sm.OLS(Y, X)
+        results = model.fit()
+
+        Rsq.append(results.rsquared)
+        kp.append(results.params[1])
+        kv.append(results.params[2])
+        stats.append(results)
+        inputs.append({'X': X, 'Y': Y})
+
+    # Plot results if requested
+    if boolplot:
+        plt.figure()
+        # Create the figure and axes
+        plt.subplot(2, 3, 1)
+
+        # Top row plots (as before)
+        plt.subplot(2, 3, 1)
+        plt.plot(x_stancephase, Rsq, color='k', linewidth=2)
+        plt.ylabel('Rsq')
+        plt.xlabel('% Stance phase')
+
+        plt.subplot(2, 3, 2)
+        plt.plot(x_stancephase, kp, color='k', linewidth=2)
+        plt.ylabel('Position gain')
+        plt.xlabel('% Stance phase')
+
+        plt.subplot(2, 3, 3)
+        plt.plot(x_stancephase, kv, color='k', linewidth=2)
+        plt.ylabel('Velocity gain')
+        plt.xlabel('% Stance phase')
+
+
+        # Ankle moment variance plot across all 3 columns in the bottom row
+
+        plt.subplot(2,1,2)
+        y_scale = (np.nanmax(ankle_moment) - np.nanmin(ankle_moment)) * 7
+        for i in range(len(x_stancephase)):
+            Y = inputs[i]['Y']
+            x = x_stancephase[i]
+            plt.plot(x + stats[i].fittedvalues / y_scale, Y / y_scale, 'ok',
+                           markerfacecolor='k', markersize=2)
+            plt.plot([x + np.min(stats[i].fittedvalues) / y_scale,
+                            x + np.max(stats[i].fittedvalues) / y_scale],
+                           [np.min(Y / y_scale), np.max(Y / y_scale)], color=[0.6, 0.6, 0.6], linewidth=1)
+
+        # Set labels and appearance for the bottom plot
+        plt.xlabel('% Stance phase (and var recon norm ankle moment)')
+        plt.ylabel('Norm ankle moment')
+
+        # Adjust layout
+        plt.tight_layout()
+        plt.show()
+
+    return Rsq, kp, kv, stats

@@ -1,5 +1,6 @@
 
-function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,Lfoot,events,fsopto,pred_samples,order,removeorigin,centerdata)
+function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot, ...
+    Lfoot,events,fsopto,pred_samples,order,removeorigin,centerdata, varargin)
 % Function to calculate a foot placement model and corresponding relative explained variance (R^2).
 % The foot placement model is a linear model correlating center of mass kinematic
 % state during swing to the subsequent foot placement.
@@ -26,6 +27,12 @@ function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,Lfoot,
 
 % centerdata: Option to demean the dependent and independent variables
 % (centerdata == 1) or not.
+
+% variable input arguments:
+%   - 'BoolPlot': default plot
+%   - 'treadmill_velocity': treadmill velocity as input (can be an array
+%                           or a scalar)
+
 
 % Output:
 
@@ -68,6 +75,21 @@ function [OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,Lfoot,
 %           error_left          :   left foot placement prediction error i.e residual
 %           error_combined      :   foot placement predicion error (left & right) i.e. residual
 
+
+%% optional input arguments
+BoolPlot = false;
+treadmill_velocity = NaN;
+for i = 1:2:length(varargin)
+    switch varargin{i}
+        case 'BoolPlot'
+            BoolPlot = varargin{i+1};
+        case 'treadmill_velocity'
+            treadmill_velocity = varargin{i+1};
+        otherwise
+            error('Unknown parameter %s', varargin{i});
+    end
+end
+
 %% actual calculations. Start with setting things up.
 % check the incoming events.
 [events,flag] = order_events(events);
@@ -96,6 +118,23 @@ OUT.stride_time_var.ylabel  ='Stride time variability [s]';
 % calculate velocities
 COM_vel = calc_derivative(COM,fsopto);
 COM_acc = calc_derivative(COM_vel,fsopto);
+
+% compute COM velocity and acceleration w.r.t. surface (e.g. treadmill)
+if ~isnan(treadmill_velocity)
+    if isscalar(treadmill_velocity)
+        % this is a constant velocity of treadmill
+        COM_vel = COM_vel + treadmill_velocity;
+    elseif length(treadmill_velocity) == length(COM)
+        % variable velocity treadmill
+        COM_vel = COM_vel + treadmill_velocity;
+        tr_acc = calc_derivative(treadmill_velocity, fsopto);
+        COM_acc = COM_acc + tr_acc;
+    else
+        disp(['input argument treadmill velocity not used because treadmill',...
+            ' velocity is ' num2str(length(treadmill_velocity)) ' frames and ',...
+            'COM data is ' length(COM_vel) ' frames'])
+    end
+end
 
 % time normalize; left variables
 % left swing is lto(1)-lhs(2)
@@ -127,6 +166,7 @@ COM_R_vel(:,end-1:end)   = nan;
 COM_R_acc(:,end-1:end)   = nan;
 foot_R(:,end-1:end)      = nan;
 origin_R(:,end-1:end)    = nan;
+
 %% save outcomes
 OUT.COM_var.data     = nanstd(COM_L,1,2);
 OUT.COM_vel_var.data = nanstd(COM_L_vel,1,2);
@@ -152,7 +192,7 @@ OUT.COM.titel       = 'CoM position';
 OUT.COM_vel.titel   = 'CoM velocity';
 OUT.COM_acc.titel   = 'CoM acceleration';
 
-%%
+%% compute step width and step width variability
 foot_L       = foot_L(25,:)';
 origin_L     = origin_L(25,:)';
 foot_R       = foot_R(25,:)';
@@ -231,7 +271,8 @@ for i_pred_sample=pred_samples
     ind_R(isnan(sum(tmp,2)))            = [];
     OUT.Right_N.data(i_pred_sample)      = size(pred_Lstance,1);
 
-    stats = regstats(foot_R_sample,pred_Rstance(:,1:order),'linear');
+    stats = regstats(foot_R_sample,pred_Rstance(:,1:order),'linear',...
+        {'beta','covb','yhat','r','mse','rsquare','adjrsquare','tstat','fstat'});
     OUT.Right_pct.data(i_pred_sample)            = stats.rsquare;
     OUT.Right_pct.pval(i_pred_sample)            = stats.fstat.pval;
     OUT.Right_coeff1.data(i_pred_sample)         = stats.beta(2);
@@ -266,7 +307,8 @@ for i_pred_sample=pred_samples
     ind_L(isnan(sum(tmp,2)))            = [];
     OUT.Left_N.data(i_pred_sample)      = size(pred_Lstance,1);
 
-    stats = regstats(foot_L_sample,pred_Lstance(:,1:order),'linear');
+    stats = regstats(foot_L_sample,pred_Lstance(:,1:order),'linear',...
+        {'beta','covb','yhat','r','mse','rsquare','adjrsquare','tstat','fstat'});
     OUT.Left_pct.data(i_pred_sample)            = stats.rsquare;
     OUT.Left_pct.pval(i_pred_sample)            = stats.fstat.pval;
     OUT.Left_coeff1.data(i_pred_sample)         = stats.beta(2);
@@ -281,9 +323,6 @@ for i_pred_sample=pred_samples
     OUT.hofb(i_pred_sample)=nanmean(sum(pred_Lstance_new,2)-foot_L_sample);
     tmp=sum(pred_Lstance_new,2)-foot_L_sample;
     intermediates.error_hof(i_pred_sample,1:length(tmp))=tmp-nanmean(tmp);
-
-
-
 
     if i_pred_sample==1
         OUT.Left_foot_var.data      = std(foot_L_sample);
@@ -311,8 +350,8 @@ for i_pred_sample=pred_samples
     ind_combined(isnan(sum(tmp,2)))     = [];
     OUT.Combined_N.data(i_pred_sample)      = size(pred_Lstance,1);
 
-
-    stats = regstats(foot_combined,pred_combined(:,1:order),'linear');
+    stats = regstats(foot_combined,pred_combined(:,1:order),'linear',...
+        {'beta','covb','yhat','r','mse','rsquare','adjrsquare','tstat','fstat'});
     OUT.Combined_pct.data(i_pred_sample)            = stats.rsquare;
     OUT.Combined_pct.pval(i_pred_sample)            = stats.fstat.pval;
     OUT.Combined_coeff1.data(i_pred_sample)         = stats.beta(2);
@@ -320,7 +359,6 @@ for i_pred_sample=pred_samples
     OUT.Combined_coeff1.pval(i_pred_sample)         = stats.tstat.pval(2);
     OUT.Combined_coeff2.pval(i_pred_sample)         = stats.tstat.pval(3);
     intermediates.error_combined(i_pred_sample,ind_combined)   = stats.r;
-
 
     if i_pred_sample==1
         OUT.Combined_foot_var.data      = std(foot_combined);
@@ -341,4 +379,40 @@ warning off
 intermediates.error_right(intermediates.error_right==0)=nan;
 intermediates.error_left(intermediates.error_left==0)=nan;
 intermediates.error_combined(intermediates.error_combined==0)=nan;
+
+%% plot output
+if BoolPlot
+    % plot main outcomes
+    h = figure('Color',[1 1 1],'Name','Relate foot placement - COM: outputs');
+    subplot(2,2,1);
+    plot(OUT.Combined_pct.data,'k','LineWidth',2);hold on;
+    plot(OUT.Left_pct.data,'b','LineWidth',1.5);
+    plot(OUT.Right_pct.data,'r','LineWidth',1.5);
+    ylabel(OUT.Combined_pct.titel);
+    set(gca,'box','off');
+    set(gca,'LineWidth',1.6);
+    set(gca,'FontSize',12);
+    xlabel('% gait cycle');
+    legend('Combined','Left leg','Right leg');
+
+    subplot(2,2,2);
+    plot(nanmean(abs(intermediates.error_combined),2),'k','LineWidth',2);hold on;
+    plot(nanmean(abs(intermediates.error_left),2),'b','LineWidth',2);
+    plot(nanmean(abs(intermediates.error_right),2),'r','LineWidth',2);
+    set(gca,'box','off');
+    set(gca,'LineWidth',1.6);
+    set(gca,'FontSize',12);
+    xlabel('% gait cycle');
+    ylabel('abs prediction error i.e. residual [m]')
+    legend('Combined','Left leg','Right leg');
+
+    % plot FP momdel time series
+    subplot(2,2,3:4);
+    try
+        FPmodelTimeseriesPlot(COM,Lfoot,Rfoot,events,fsopto, intermediates)
+    catch
+        disp('error with ploting results foot placement')
+    end
+
+end
 

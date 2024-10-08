@@ -3,8 +3,15 @@ import os
 # use utilities
 from utilities import *
 
+
+# had some issues with matplotlib in debug mode. this seems to solve all issues
+import matplotlib
+matplotlib.use('Qt5Agg') # interactive backend for matplotlib figures
+
+
+
 # path information (point to the example data)
-datapath = "C:/Users/mat950/Documents/Software/DataAnalysis/Tutorial-stabilizing-walking/ExampleData"
+datapath = "../ExampleData"
 
 # Create datatable for fit ?
 BoolCreateTable = True
@@ -140,6 +147,15 @@ plt.ylabel('Rsq')
 BoolPlot = True
 id = 4 # at ths_delay_vect[id-1] in the gait cycle
 myModel.fitmodel(id, BoolPlot)  # fit model on all datapoints in this phase of the gait cycle
+
+# second test with function
+fb_delay = 0.1
+t = np.array(Dat.time)
+Tankle = np.array(Dat.TAnkleLy)
+COM = np.array(Dat.COMy)
+FootL = np.array(Dat.FootLy)
+relate_com_anklemoment(t, COM, FootL, Tankle, Event, fb_delay,
+                       boolplot = True, treadmill_velocity= 1.1)
 
 # show figures
 plt.show()
