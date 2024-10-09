@@ -48,7 +48,7 @@ matlab example:
 
 *unperturbed walking:* The examples use data of one subject (ExampleData/S3) of the study: [Dataset and analyses for: Active foot placement control ensures stable gait: Effect of constraints on foot placement and ankle moments](https://doi.org/10.5281/zenodo.4229851). This analysis can be applied to all subjects after downloading the data.
 
-*perturbed and unperturbed walking*: the examples GeneralExample_Moore2013.m and Moore2013_ComparePertUnpert.m use the data from: Moore JK, Hnat SK, van den Bogert AJ. 2015. An elaborate data set on human gait and the effect of mechanical perturbations. PeerJ 3:e918 [An elaborate data set on human gait and the effect of mechanical perturbations [PeerJ]](https://doi.org/10.7717/peerj.918). Example data of one subject walking (ExampleData/Moore2013) is used in these example. The analysis can be applied to all subjects after dowloading the data from the online repository.
+*perturbed and unperturbed walking*: the examples GeneralExample_Moore2013.m and Moore2013_ComparePertUnpert.m use data from: Moore JK, Hnat SK, van den Bogert AJ. 2015. An elaborate data set on human gait and the effect of mechanical perturbations. PeerJ 3:e918 [An elaborate data set on human gait and the effect of mechanical perturbations [PeerJ]](https://doi.org/10.7717/peerj.918). Example data of one subject walking (ExampleData/Moore2013) is used in these example. The analysis can be applied to all subjects after dowloading data from the online repository.
 
 ## Python examples
 
