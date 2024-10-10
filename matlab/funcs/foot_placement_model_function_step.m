@@ -385,25 +385,25 @@ if BoolPlot
     % plot main outcomes
     h = figure('Color',[1 1 1],'Name','Relate foot placement - COM: outputs');
     subplot(2,2,1);
-    plot(OUT.Combined_pct.data,'k','LineWidth',2);hold on;
-    plot(OUT.Left_pct.data,'b','LineWidth',1.5);
-    plot(OUT.Right_pct.data,'r','LineWidth',1.5);
-    ylabel(OUT.Combined_pct.titel);
+    plot((1:50)*2-2,OUT.Combined_pct.data,'k','LineWidth',2);hold on;
+    plot((1:50)*2-2,OUT.Left_pct.data,'b','LineWidth',1.5);
+    plot((1:50)*2-2,OUT.Right_pct.data,'r','LineWidth',1.5);
+    ylabel('R^2');
     set(gca,'box','off');
     set(gca,'LineWidth',1.6);
     set(gca,'FontSize',12);
-    xlabel('% gait cycle');
+    xlabel('% swing phase');
     legend('Combined','Left leg','Right leg');
 
     subplot(2,2,2);
-    plot(nanmean(abs(intermediates.error_combined),2),'k','LineWidth',2);hold on;
-    plot(nanmean(abs(intermediates.error_left),2),'b','LineWidth',2);
-    plot(nanmean(abs(intermediates.error_right),2),'r','LineWidth',2);
+    plot((1:50)*2-2,nanmean(abs(intermediates.error_combined),2),'k','LineWidth',2);hold on;
+    plot((1:50)*2-2,nanmean(abs(intermediates.error_left),2),'b','LineWidth',2);
+    plot((1:50)*2-2,nanmean(abs(intermediates.error_right),2),'r','LineWidth',2);
     set(gca,'box','off');
     set(gca,'LineWidth',1.6);
     set(gca,'FontSize',12);
-    xlabel('% gait cycle');
-    ylabel('abs prediction error i.e. residual [m]')
+    xlabel('% swing phase');
+    ylabel('mean absolute residual [m]')
     legend('Combined','Left leg','Right leg');
 
     % plot FP momdel time series

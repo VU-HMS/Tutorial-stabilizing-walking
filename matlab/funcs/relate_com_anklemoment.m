@@ -186,16 +186,16 @@ if boolplot
     % standard figure
     h = figure('Color',[1 1 1],'Name','Relate Moment-COM: outputs');
     subplot(2,4,1)
-    plot(x_stancephase, Rsq,'Color',[0 0 0],'LineWidth',2);
-    ylabel('Rsq')
+    plot(x_stancephase*100, Rsq,'Color',[0 0 0],'LineWidth',2);
+    ylabel('R^2')
     subplot(2,4,2)
-    plot(x_stancephase, kp,'Color',[0 0 0],'LineWidth',2);
+    plot(x_stancephase*100, kp,'Color',[0 0 0],'LineWidth',2);
     ylabel('position gain')
     subplot(2,4,3)
-    plot(x_stancephase, kv,'Color',[0 0 0],'LineWidth',2);
+    plot(x_stancephase*100, kv,'Color',[0 0 0],'LineWidth',2);
     ylabel('velocity gain')
     subplot(2,4,4)
-    plot(x_stancephase, residuals,'Color',[0 0 0],'LineWidth',2);
+    plot(x_stancephase*100, residuals,'Color',[0 0 0],'LineWidth',2);
     ylabel('residuals [Nm]')
     for i= 1:4
         subplot(2,4,i)
@@ -206,12 +206,12 @@ if boolplot
     end
     % a bit more adventurous figure to explore ankle moment and variance
     % explained
-    y_scale = (max(ankle_moment) - min(ankle_moment))*7;
+    y_scale = (max(ankle_moment) - min(ankle_moment))*0.07;
     subplot(2,4,5:8);
     for i=1:length(x_stancephase)
         % get dependent and independent variables
         Y = inputs(i).Y;
-        x = x_stancephase(i);
+        x = x_stancephase(i)*100;
         plot(x + stats(i).yhat./y_scale, Y./y_scale,'ok','Color',[0 0 0],...
             'MarkerFaceColor',[0 0 0],'MarkerSize',mk); hold on;
         plot(x + [min(stats(i).yhat),max(stats(i).yhat)]./y_scale,...
