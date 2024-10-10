@@ -166,25 +166,25 @@ for ifile = 1:length(ConditionNames)
     %-----------------------------------
     figure(h_foot);
     subplot(1,2,1);
-    plot(output(ifile).FootPlacement.Combined_pct.data,'Color',Cs,'LineWidth',2);hold on;
-    ylabel(output(ifile).FootPlacement.Combined_pct.titel);
+    plot((1:50)*2-2,output(ifile).FootPlacement.Combined_pct.data,'Color',Cs,'LineWidth',2);hold on;
+    ylabel('R^2');
     if ifile == length(ConditionNames)
         set(gca,'box','off');
         set(gca,'LineWidth',1.6);
         set(gca,'FontSize',12);
-        xlabel('% gait cycle');
+        xlabel('% swing phase');
         legend(ConditionNames);
     end
 
     subplot(1,2,2);
-    plot(nanmean(abs(output(ifile).FootPlacement_errors.error_combined),2),...
+    plot((1:50)*2-2,nanmean(abs(output(ifile).FootPlacement_errors.error_combined),2),...
         'Color',Cs,'LineWidth',2);hold on;
     if ifile == length(ConditionNames)
         set(gca,'box','off');
         set(gca,'LineWidth',1.6);
         set(gca,'FontSize',12);
-        xlabel('% gait cycle');
-        ylabel('abs prediction error i.e. residual [m]')
+        xlabel('% swing phase');
+        ylabel('mean absolute residual [m]')
         legend(ConditionNames);
     end
 
@@ -193,16 +193,16 @@ for ifile = 1:length(ConditionNames)
     x_stancephase = output(1).Ta_settings.x_stancephase;
     figure(h_ankle);
     subplot(1,4,1)
-    plot(x_stancephase, output(ifile).Ta_Rsq,'Color',Cs,'LineWidth',2); hold on;
-    ylabel('Rsq')
+    plot(x_stancephase*100, output(ifile).Ta_Rsq,'Color',Cs,'LineWidth',2); hold on;
+    ylabel('R^2')
     subplot(1,4,2)
-    plot(x_stancephase, output(ifile).Ta_kp,'Color',Cs,'LineWidth',2); hold on;
+    plot(x_stancephase*100, output(ifile).Ta_kp,'Color',Cs,'LineWidth',2); hold on;
     ylabel('position gain')
     subplot(1,4,3)
-    plot(x_stancephase, output(ifile).Ta_kv,'Color',Cs,'LineWidth',2); hold on;
+    plot(x_stancephase*100, output(ifile).Ta_kv,'Color',Cs,'LineWidth',2); hold on;
     ylabel('velocity gain')
     subplot(1,4,4)
-    plot(x_stancephase, output(ifile).resid,'Color',Cs,'LineWidth',2); hold on;
+    plot(x_stancephase*100, output(ifile).resid,'Color',Cs,'LineWidth',2); hold on;
     ylabel('abs residuals [Nm]');
     if ifile == length(ConditionNames)
         for i= 1:4

@@ -25,9 +25,8 @@ You can analyse the relation between center of mass kinematics and foot placemen
 matlab example:
 
 ```matlab
-[OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,...
-Lfoot,events,fs,pred_samples,order,removeorigin,centerdata,...
-'BoolPlot',true);
+[OUT,intermediates]=foot_placement_model_function_step(COM,Rfoot,
+    Lfoot,events,fs,pred_samples,order,removeorigin,centerdata, 'BoolPlot', true, 'treadmill_velocity',treadmill_velocity); 
 ```
 
 open the function **foot_placement_model_function_step** for more details on the  required and optional input arguments and outputs.
